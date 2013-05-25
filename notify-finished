@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+import os
+import argparse
+import time
+from subprocess import Popen, PIPE
+
+parser = argparse.ArgumentParser(description='Script that notifies you know when a process has finished')
+parser.add_argument('-p', '--pid', metavar='PID', required=True, help='pid of the process to look for')
+parser.add_argument('-m', '--mail', required=False, action='store_const', const=True, help='Email me when the process PID has finished')
+args = parser.parse_args()
+
+proc = '/proc/'+args.pid
+stat = proc+'/stat'
+if os.path.exists(stat):
+	cmdline = open(proc+'/cmdline').read()
+	while os.path.exists(stat):
+		time.sleep(1)
+		
+	message = "Process %s has terminated"  % args.pid
+	if args.mail:
+		cmd = ['mail', '-s', message, os.environ['USER']]
+		p = Popen(cmd, stdin=PIPE)
+		output = p.communicate (message)
+		print output
+	else:
+		print message
+else:
+	print "Can't find the process %s" % args.pid
